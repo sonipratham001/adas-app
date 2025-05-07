@@ -36,10 +36,10 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
       console.log('User logged in with email:', userCredential.user.uid);
 
       // Navigate to HomeScreen with necessary params
-      navigation.navigate('Home', {
-        email,
-        userId: userCredential.user.uid,
-      });
+      // navigation.navigate('Home', {
+      //   email,
+      //   userId: userCredential.user.uid,
+      // });
     } catch (error: any) {
       console.error('Error during login:', error);
       console.log('Error code:', error.code);

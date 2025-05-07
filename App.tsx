@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth'; // Use modular API
+import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
 import SignupScreen from './src/screens/Signupscreen/signupscreen';
 import OTPVerificationScreen from './src/screens/OTPscreen/otpscreen';
 import HomeScreen from './src/screens/Homescreen/homescreen';
 import LoginScreen from './src/screens/Loginscreen/loginscreen';
 import DashboardScreen from './src/screens/Dashboard/dashboard';
+import CameraScreen from './src/screens/CameraScreen/CameraScreen';
+import SideMenu from './src/screens/SideMenu/SideMenu';
+import { SideMenuProvider, useSideMenu } from './src/hooks/SideMenuContext';
 
 // Define the type for the navigation stack
 type RootStackParamList = {
@@ -16,9 +19,26 @@ type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Dashboard: { videoPaths?: string[] };
+  Camera: undefined;
+  SideMenu: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const AuthenticatedLayout = ({ children, navigation }: any) => {
+  const { isSideMenuVisible, setSideMenuVisible } = useSideMenu(); // Use the context hook
+
+  return (
+    <>
+      {children}
+      <SideMenu
+        visible={isSideMenuVisible}
+        onClose={() => setSideMenuVisible(false)}
+        navigation={navigation}
+      />
+    </>
+  );
+};
 
 const App = () => {
   const [initializing, setInitializing] = useState(true);
@@ -33,7 +53,7 @@ const App = () => {
       if (initializing) setInitializing(false);
     });
 
-    return unsubscribe; // Cleanup subscription on unmount
+    return unsubscribe;
   }, [initializing]);
 
   if (initializing) {
@@ -41,24 +61,45 @@ const App = () => {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {!user ? (
-            <>
-              <Stack.Screen name="Signup" component={SignupScreen} />
-              <Stack.Screen name="OTP" component={OTPVerificationScreen} />
-              <Stack.Screen name="Login" component={LoginScreen} />
-            </>
-          ) : (
-            <>
-              <Stack.Screen name="Home" component={HomeScreen} />
-              <Stack.Screen name="Dashboard" component={DashboardScreen} />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </GestureHandlerRootView>
+    <SideMenuProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {!user ? (
+              <>
+                <Stack.Screen name="Signup" component={SignupScreen} />
+                <Stack.Screen name="OTP" component={OTPVerificationScreen} />
+                <Stack.Screen name="Login" component={LoginScreen} />
+              </>
+            ) : (
+              <>
+                <Stack.Screen name="Home">
+                  {(props) => (
+                    <AuthenticatedLayout navigation={props.navigation}>
+                      <HomeScreen {...props} />
+                    </AuthenticatedLayout>
+                  )}
+                </Stack.Screen>
+                <Stack.Screen name="Dashboard">
+                  {(props) => (
+                    <AuthenticatedLayout navigation={props.navigation}>
+                      <DashboardScreen {...props} />
+                    </AuthenticatedLayout>
+                  )}
+                </Stack.Screen>
+                <Stack.Screen name="Camera">
+                  {(props) => (
+                    <AuthenticatedLayout navigation={props.navigation}>
+                      <CameraScreen {...props} />
+                    </AuthenticatedLayout>
+                  )}
+                </Stack.Screen>
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </GestureHandlerRootView>
+    </SideMenuProvider>
   );
 };
 

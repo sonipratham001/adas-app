@@ -7,6 +7,7 @@ import { getAuth } from '@react-native-firebase/auth';
 import { storage } from '../../config/firebaseConfig';
 import { ref, listAll, getDownloadURL, deleteObject } from '@react-native-firebase/storage';
 import { styles } from './dashboard.styles';
+import { useSideMenu } from '../../hooks/SideMenuContext'; // Import the context hook
 
 // Define the type for the navigation stack
 type RootStackParamList = {
@@ -15,11 +16,12 @@ type RootStackParamList = {
   Home: undefined;
   Login: undefined;
   Dashboard: { videoPaths?: string[] };
+  Camera: undefined;
+  SideMenu: undefined;
 };
 
-// Use NativeStackScreenProps to get both navigation and route props
-type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
+type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 // Define video item type
 type VideoItem = {
   id: string;
@@ -37,7 +39,7 @@ const DashboardScreen = ({ navigation }: Props) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [buffering, setBuffering] = useState<boolean>(false);
   const videoRef = useRef<VideoRef>(null);
-
+  const { setSideMenuVisible } = useSideMenu(); // Use the context hook
   // Fetch videos from Firebase Storage on mount
   useEffect(() => {
     const fetchVideos = async () => {
