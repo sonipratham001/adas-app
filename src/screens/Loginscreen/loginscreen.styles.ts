@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    marginBottom: 30,
+    marginBottom: 10, // Reduced margin to place Forgot Password link closer
     width: '100%',
     elevation: 4,
   },
@@ -43,6 +43,15 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     color: '#1F2937',
+  },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 20,
+  },
+  forgotPasswordText: {
+    color: '#2563EB',
+    fontSize: 16,
+    fontWeight: '500',
   },
   button: {
     backgroundColor: '#000',

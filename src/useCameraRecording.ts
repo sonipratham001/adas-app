@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Camera, useCameraDevices, useCameraFormat, VideoFile } from 'react-native-vision-camera';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 import RNFS from 'react-native-fs';
 import { getAuth } from '@react-native-firebase/auth';
@@ -11,6 +11,14 @@ import Tts from 'react-native-tts';
 
 const BACKEND_URL = 'http://148.66.155.196:5500/process_frame';
 const FRAME_SEND_INTERVAL = 2000;
+
+// Define the modal state type
+type ModalState = {
+  isVisible: boolean;
+  type: 'success' | 'error';
+  title: string;
+  message: string;
+};
 
 export const useCameraRecording = () => {
   const [hasPermission, setHasPermission] = useState<boolean>(false);
@@ -24,7 +32,13 @@ export const useCameraRecording = () => {
   const [uploading, setUploading] = useState<boolean>(false);
   const [responseData, setResponseData] = useState<{ commands: string[]; audioUrl: string | null } | null>(null);
   const [isSendingFrame, setIsSendingFrame] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true); // New loading state
+  const [loading, setLoading] = useState<boolean>(true);
+  const [modalState, setModalState] = useState<ModalState>({
+    isVisible: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   const camera = useRef<Camera>(null);
   const devices = useCameraDevices();
@@ -61,7 +75,7 @@ export const useCameraRecording = () => {
   // Check permissions
   const checkPermissions = async () => {
     try {
-      setLoading(true); // Start loading
+      setLoading(true);
       let cameraStatus, micStatus;
       if (Platform.OS === 'android') {
         cameraStatus = await check(PERMISSIONS.ANDROID.CAMERA);
@@ -79,18 +93,23 @@ export const useCameraRecording = () => {
         setShowPermissionModal(true);
       }
       setPermissionAsked(true);
-      setLoading(false); // End loading
+      setLoading(false);
     } catch (error) {
       console.error('Permission check error:', error);
-      Alert.alert('Error', 'Failed to check permissions.');
-      setLoading(false); // End loading even on error
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to check permissions.',
+      });
+      setLoading(false);
     }
   };
 
   // Request permissions
   const requestSystemPermissions = async () => {
     try {
-      setLoading(true); // Start loading
+      setLoading(true);
       let cameraStatus, micStatus;
       if (Platform.OS === 'android') {
         cameraStatus = await request(PERMISSIONS.ANDROID.CAMERA);
@@ -104,19 +123,25 @@ export const useCameraRecording = () => {
         const microphonePermission = await Camera.requestMicrophonePermission();
         setHasPermission(cameraPermission === 'granted' && microphonePermission === 'granted');
       } else if (cameraStatus === RESULTS.BLOCKED || micStatus === RESULTS.BLOCKED) {
-        Alert.alert(
-          'Permissions Blocked',
-          'Camera and Microphone access are blocked. Please enable them in Settings.',
-          [{ text: 'Cancel', style: 'cancel' }, { text: 'Open Settings', onPress: () => openSettings() }],
-        );
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Permissions Blocked',
+          message: 'Camera and Microphone access are blocked. Please enable them in Settings.',
+        });
       } else {
         setHasPermission(false);
       }
-      setLoading(false); // End loading
+      setLoading(false);
     } catch (error) {
       console.error('Permission request error:', error);
-      Alert.alert('Error', 'Failed to request permissions.');
-      setLoading(false); // End loading even on error
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to request permissions.',
+      });
+      setLoading(false);
     }
   };
 
@@ -175,13 +200,33 @@ export const useCameraRecording = () => {
     } catch (error: any) {
       console.error('Error sending frame:', error);
       if (error.message === 'No authentication token') {
-        Alert.alert('Error', 'Authentication failed. Please sign in again.');
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Authentication failed. Please sign in again.',
+        });
       } else if (error.response) {
-        Alert.alert('Error', `Server error: ${error.response.data.error?.message || 'Unknown error'}`);
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          message: `Server error: ${error.response.data.error?.message || 'Unknown error'}`,
+        });
       } else if (error.request) {
-        Alert.alert('Error', 'Network error: Failed to connect to the server.');
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Network error: Failed to connect to the server.',
+        });
       } else {
-        Alert.alert('Error', `Failed to send frame: ${error.message}`);
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          message: `Failed to send frame: ${error.message}`,
+        });
       }
     } finally {
       if (photoPath) {
@@ -227,11 +272,21 @@ export const useCameraRecording = () => {
       const downloadURL = await getDownloadURL(videoRef);
       console.log('Video uploaded to Firebase:', downloadURL);
       setVideoPaths((prev) => [...prev, downloadURL]);
-      Alert.alert('Recording Saved', 'Video uploaded to Firebase Storage.');
+      setModalState({
+        isVisible: true,
+        type: 'success',
+        title: 'Recording Saved',
+        message: 'Video uploaded to Firebase Storage.',
+      });
       return downloadURL;
     } catch (error: any) {
       console.error('Error uploading video to Firebase:', error);
-      Alert.alert('Error', 'Failed to upload video to Firebase.');
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to upload video to Firebase.',
+      });
       return null;
     } finally {
       setUploading(false);
@@ -241,7 +296,12 @@ export const useCameraRecording = () => {
   // Handle recording start/stop
   const handleStartRecording = async () => {
     if (!device || !cameraReady) {
-      Alert.alert('Camera not ready', 'Please wait until camera is ready...');
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Camera Not Ready',
+        message: 'Please wait until camera is ready...',
+      });
       return;
     }
     if (!hasPermission) {
@@ -259,7 +319,12 @@ export const useCameraRecording = () => {
               await uploadVideoToFirebase(video.path, timestamp);
             } catch (error) {
               console.error('Error handling video:', error);
-              Alert.alert('Error', 'Failed to process video.');
+              setModalState({
+                isVisible: true,
+                type: 'error',
+                title: 'Error',
+                message: 'Failed to process video.',
+              });
             } finally {
               try {
                 await RNFS.unlink(video.path);
@@ -271,20 +336,40 @@ export const useCameraRecording = () => {
           },
           onRecordingError: (error) => {
             console.error('Recording error:', error);
-            Alert.alert('Recording Error', error.message);
+            setModalState({
+              isVisible: true,
+              type: 'error',
+              title: 'Recording Error',
+              message: error.message,
+            });
             setRecording(false);
           },
         });
         setRecording(true);
-        Alert.alert('Recording Started without any error', 'Real-time frame processing and video recording have started.');
+        setModalState({
+          isVisible: true,
+          type: 'success',
+          title: 'Recording Started',
+          message: 'Real-time frame processing and video recording have started.',
+        });
       } else {
         await camera.current?.stopRecording();
         setRecording(false);
-        Alert.alert('Recording Stopped', 'Video is being uploaded to Firebase. Real-time processing stopped.');
+        setModalState({
+          isVisible: true,
+          type: 'success',
+          title: 'Recording Stopped',
+          message: 'Video is being uploaded to Firebase. Real-time processing stopped.',
+        });
       }
     } catch (error) {
       console.error('Error managing recording:', error);
-      Alert.alert('Error', 'Failed to manage recording.');
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to manage recording.',
+      });
       setRecording(false);
     }
   };
@@ -302,6 +387,20 @@ export const useCameraRecording = () => {
       checkPermissions();
     }
   }, [permissionAsked]);
+
+  // Function to close the modal
+  const handleCloseModal = () => {
+    setModalState((prev) => ({ ...prev, isVisible: false }));
+  };
+
+  // Function to update modal state (exposed for external use)
+  const updateModalState = (newState: Omit<ModalState, 'isVisible'> & { isVisible?: boolean }) => {
+    setModalState((prev) => ({
+      ...prev,
+      ...newState,
+      isVisible: newState.isVisible !== undefined ? newState.isVisible : true,
+    }));
+  };
 
   return {
     hasPermission,
@@ -323,6 +422,9 @@ export const useCameraRecording = () => {
     toggleCameraPosition,
     toggleTorch,
     setCameraReady,
-    loading, // Expose the loading state
+    loading,
+    modalState,
+    handleCloseModal,
+    updateModalState, // Expose the update function
   };
 };

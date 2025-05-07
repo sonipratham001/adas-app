@@ -15,6 +15,7 @@ type RootStackParamList = {
   Dashboard: { videoPaths?: string[] };
   Camera: undefined;
   SideMenu: undefined;
+  ForgotPassword: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>; // Removed setSideMenuVisible from Props

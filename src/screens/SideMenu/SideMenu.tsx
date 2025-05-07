@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { styles } from './sidemenu.styles';
+import CustomModal from '../../Modal/CustomModal'; // Import the CustomModal component
 
 type RootStackParamList = {
   Signup: undefined;
@@ -13,6 +14,7 @@ type RootStackParamList = {
   Dashboard: { videoPaths?: string[] };
   Camera: undefined;
   SideMenu: undefined;
+  ForgotPassword: undefined;
 };
 
 type Props = {
@@ -21,10 +23,23 @@ type Props = {
   onClose: () => void;
 };
 
+type ModalState = {
+  isVisible: boolean;
+  type: 'success' | 'error';
+  title: string;
+  message: string;
+};
+
 const SideMenu = ({ visible, onClose, navigation }: Props) => {
   const [userDetails, setUserDetails] = useState<{ name: string | null; email: string | null }>({
     name: null,
     email: null,
+  });
+  const [modalState, setModalState] = useState<ModalState>({
+    isVisible: false,
+    type: 'success',
+    title: '',
+    message: '',
   });
 
   useEffect(() => {
@@ -46,12 +61,26 @@ const SideMenu = ({ visible, onClose, navigation }: Props) => {
     try {
       const auth = getAuth();
       await auth.signOut();
-      Alert.alert('Success', 'You have been signed out.');
+      setModalState({
+        isVisible: true,
+        type: 'success',
+        title: 'Success',
+        message: 'You have been logged out.',
+      });
       onClose();
     } catch (error: any) {
       console.error('Sign-out error:', error);
-      Alert.alert('Error', 'Failed to sign out. Please try again.');
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to sign out. Please try again.',
+      });
     }
+  };
+
+  const handleCloseModal = () => {
+    setModalState((prev) => ({ ...prev, isVisible: false }));
   };
 
   if (!visible) return null;
@@ -96,6 +125,15 @@ const SideMenu = ({ visible, onClose, navigation }: Props) => {
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
+
+      {/* Custom Modal */}
+      <CustomModal
+        isVisible={modalState.isVisible}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        onClose={handleCloseModal}
+      />
     </View>
   );
 };

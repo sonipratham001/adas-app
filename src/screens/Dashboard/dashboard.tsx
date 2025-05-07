@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Dimensions, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Video, { VideoRef } from 'react-native-video';
 import { Icon } from 'react-native-elements';
@@ -7,7 +7,8 @@ import { getAuth } from '@react-native-firebase/auth';
 import { storage } from '../../config/firebaseConfig';
 import { ref, listAll, getDownloadURL, deleteObject } from '@react-native-firebase/storage';
 import { styles } from './dashboard.styles';
-import { useSideMenu } from '../../hooks/SideMenuContext'; // Import the context hook
+import { useSideMenu } from '../../hooks/SideMenuContext';
+import CustomModal from '../../Modal/CustomModal'; // Import the new modal component
 
 // Define the type for the navigation stack
 type RootStackParamList = {
@@ -18,15 +19,23 @@ type RootStackParamList = {
   Dashboard: { videoPaths?: string[] };
   Camera: undefined;
   SideMenu: undefined;
+  ForgotPassword: undefined;
 };
 
-
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
-// Define video item type
+
 type VideoItem = {
   id: string;
   title: string;
   path: string;
+};
+
+type ModalState = {
+  isVisible: boolean;
+  type: 'success' | 'error' | 'confirmation';
+  title: string;
+  message: string;
+  videoIdToDelete?: string;
 };
 
 const { width, height } = Dimensions.get('window');
@@ -38,8 +47,16 @@ const DashboardScreen = ({ navigation }: Props) => {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [buffering, setBuffering] = useState<boolean>(false);
+  const [modalState, setModalState] = useState<ModalState>({
+    isVisible: false,
+    type: 'success',
+    title: '',
+    message: '',
+    videoIdToDelete: undefined,
+  });
   const videoRef = useRef<VideoRef>(null);
-  const { setSideMenuVisible } = useSideMenu(); // Use the context hook
+  const { setSideMenuVisible } = useSideMenu();
+
   // Fetch videos from Firebase Storage on mount
   useEffect(() => {
     const fetchVideos = async () => {
@@ -57,9 +74,9 @@ const DashboardScreen = ({ navigation }: Props) => {
           videoList.items.map(async (item, index) => {
             const url = await getDownloadURL(item);
             return {
-              id: item.name, // Use filename as ID
-              title: `Recording ${index + 1}`, // Dynamic title
-              path: url, // Download URL
+              id: item.name,
+              title: `Recording ${index + 1}`,
+              path: url,
             };
           })
         );
@@ -67,7 +84,12 @@ const DashboardScreen = ({ navigation }: Props) => {
         setVideos(videoItems);
       } catch (error: any) {
         console.error('Error fetching videos:', error);
-        Alert.alert('Error', 'Failed to fetch videos from Firebase.');
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Failed to fetch videos from Firebase.',
+        });
       } finally {
         setLoading(false);
       }
@@ -93,27 +115,45 @@ const DashboardScreen = ({ navigation }: Props) => {
         setError(null);
         setIsPaused(false);
       }
-      Alert.alert('Success', 'Video deleted successfully.');
+      setModalState({
+        isVisible: true,
+        type: 'success',
+        title: 'Success',
+        message: 'Video deleted successfully.',
+      });
     } catch (error: any) {
       console.error('Error deleting video:', error);
-      Alert.alert('Error', 'Failed to delete video from Firebase.');
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to delete video from Firebase.',
+      });
     }
   };
 
   // Handle delete video with confirmation
   const handleDeleteVideo = (videoId: string) => {
-    Alert.alert(
-      'Delete Video',
-      'Are you sure you want to delete this video? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteVideoFromFirebase(videoId),
-        },
-      ]
-    );
+    setModalState({
+      isVisible: true,
+      type: 'confirmation',
+      title: 'Delete Video',
+      message: 'Are you sure you want to delete this video? This action cannot be undone.',
+      videoIdToDelete: videoId,
+    });
+  };
+
+  // Handle modal confirm action
+  const handleConfirmDelete = () => {
+    if (modalState.videoIdToDelete) {
+      deleteVideoFromFirebase(modalState.videoIdToDelete);
+    }
+    setModalState((prev) => ({ ...prev, isVisible: false, videoIdToDelete: undefined }));
+  };
+
+  // Handle modal cancel/close action
+  const handleCloseModal = () => {
+    setModalState((prev) => ({ ...prev, isVisible: false, videoIdToDelete: undefined }));
   };
 
   // Render video item in FlatList
@@ -231,6 +271,17 @@ const DashboardScreen = ({ navigation }: Props) => {
           </TouchableOpacity>
         </>
       )}
+
+      {/* Custom Modal */}
+      <CustomModal
+        isVisible={modalState.isVisible}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        onConfirm={modalState.type === 'confirmation' ? handleConfirmDelete : undefined}
+        onCancel={modalState.type === 'confirmation' ? handleCloseModal : undefined}
+        onClose={handleCloseModal}
+      />
     </View>
   );
 };

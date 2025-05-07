@@ -10,6 +10,7 @@ import LoginScreen from './src/screens/Loginscreen/loginscreen';
 import DashboardScreen from './src/screens/Dashboard/dashboard';
 import CameraScreen from './src/screens/CameraScreen/CameraScreen';
 import SideMenu from './src/screens/SideMenu/SideMenu';
+import ForgotPasswordScreen from './src/screens/ForgotPassword/ForgotPasswordScreen';
 import { SideMenuProvider, useSideMenu } from './src/hooks/SideMenuContext';
 
 // Define the type for the navigation stack
@@ -21,12 +22,13 @@ type RootStackParamList = {
   Dashboard: { videoPaths?: string[] };
   Camera: undefined;
   SideMenu: undefined;
+  ForgotPassword: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AuthenticatedLayout = ({ children, navigation }: any) => {
-  const { isSideMenuVisible, setSideMenuVisible } = useSideMenu(); // Use the context hook
+  const { isSideMenuVisible, setSideMenuVisible } = useSideMenu();
 
   return (
     <>
@@ -64,14 +66,17 @@ const App = () => {
     <SideMenuProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
             {!user ? (
+              // Non-authenticated stack
               <>
                 <Stack.Screen name="Signup" component={SignupScreen} />
                 <Stack.Screen name="OTP" component={OTPVerificationScreen} />
                 <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
               </>
             ) : (
+              // Authenticated stack
               <>
                 <Stack.Screen name="Home">
                   {(props) => (

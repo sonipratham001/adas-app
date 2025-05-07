@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { styles } from './signupscreen.styles';
 import { getAuth, createUserWithEmailAndPassword } from '@react-native-firebase/auth';
+import CustomModal from '../../Modal/CustomModal'; // Import the CustomModal component
 
 // Define navigation params to match RootStackParamList
 interface SignupScreenProps {
@@ -10,21 +11,44 @@ interface SignupScreenProps {
   };
 }
 
+type ModalState = {
+  isVisible: boolean;
+  type: 'success' | 'error';
+  title: string;
+  message: string;
+};
+
 const SignupScreen = ({ navigation }: SignupScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modalState, setModalState] = useState<ModalState>({
+    isVisible: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   const auth = getAuth();
 
   const handleSignup = async () => {
     if (!email.includes('@') || email.length < 5) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Invalid Email',
+        message: 'Please enter a valid email address.',
+      });
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Invalid Password', 'Password must be at least 6 characters.');
+      setModalState({
+        isVisible: true,
+        type: 'error',
+        title: 'Invalid Password',
+        message: 'Password must be at least 6 characters.',
+      });
       return;
     }
 
@@ -37,7 +61,12 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
       // Retrieve the Firebase ID token
       const token = await userCredential.user.getIdToken();
       console.log('Firebase ID Token:', token);
-      Alert.alert('Signup Successful', 'User created! Check the console for the Firebase ID token.');
+      setModalState({
+        isVisible: true,
+        type: 'success',
+        title: 'Signup Successful',
+        message: 'User created! Check the console for the Firebase ID token.',
+      });
 
       // Navigate to HomeScreen with necessary params (excluding password)
       navigation.navigate('Home', {
@@ -50,13 +79,33 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
       console.log('Error code:', error.code);
       console.log('Error message:', error.message);
       if (error.code === 'auth/email-already-in-use') {
-        Alert.alert('Email in Use', 'This email is already registered.');
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Email in Use',
+          message: 'This email is already registered.',
+        });
       } else if (error.code === 'auth/invalid-email') {
-        Alert.alert('Invalid Email', 'Please enter a valid email address.');
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Invalid Email',
+          message: 'Please enter a valid email address.',
+        });
       } else if (error.code === 'auth/weak-password') {
-        Alert.alert('Weak Password', 'Password must be at least 6 characters.');
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Weak Password',
+          message: 'Password must be at least 6 characters.',
+        });
       } else {
-        Alert.alert('Error', error.message || 'Failed to sign up. Please try again.');
+        setModalState({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          message: error.message || 'Failed to sign up. Please try again.',
+        });
       }
     } finally {
       setLoading(false);
@@ -66,6 +115,10 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
   const handleLoginRedirect = () => {
     console.log('Navigate to Login Screen');
     navigation.navigate('Login');
+  };
+
+  const handleCloseModal = () => {
+    setModalState((prev) => ({ ...prev, isVisible: false }));
   };
 
   return (
@@ -135,6 +188,15 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
           </Text>
         </View>
       </TouchableOpacity>
+
+      {/* Custom Modal */}
+      <CustomModal
+        isVisible={modalState.isVisible}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        onClose={handleCloseModal}
+      />
     </KeyboardAvoidingView>
   );
 };

@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Camera } from 'react-native-vision-camera';
 import { Icon } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { styles } from './camerascreen.styles';
 import { useCameraRecording } from '../../useCameraRecording';
-import { useSideMenu } from '../../hooks/SideMenuContext'; // Import the context hook
+import { useSideMenu } from '../../hooks/SideMenuContext';
+import CustomModal from '../../Modal/CustomModal'; // Import the CustomModal component
+import { openSettings } from 'react-native-permissions'; // Import openSettings for permissions blocked case
 
 type RootStackParamList = {
   Signup: undefined;
@@ -16,9 +18,11 @@ type RootStackParamList = {
   Dashboard: { videoPaths?: string[] };
   Camera: undefined;
   SideMenu: undefined;
+  ForgotPassword: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Camera'>;
+
 const CameraScreen = ({ navigation }: Props) => {
   const {
     recording,
@@ -34,8 +38,18 @@ const CameraScreen = ({ navigation }: Props) => {
     toggleCameraPosition,
     toggleTorch,
     setCameraReady,
+    modalState,
+    handleCloseModal,
+    updateModalState, // Destructure the new update function
   } = useCameraRecording();
   const { setSideMenuVisible } = useSideMenu();
+
+  // Handler for opening settings when permissions are blocked
+  const handleOpenSettings = () => {
+    openSettings();
+    handleCloseModal();
+  };
+
   if (!device) {
     return (
       <LinearGradient
@@ -69,7 +83,12 @@ const CameraScreen = ({ navigation }: Props) => {
         onInitialized={() => setCameraReady(true)}
         onError={(error) => {
           console.error('Camera Error:', error);
-          Alert.alert('Camera Error', error.message);
+          // Use updateModalState to show the error
+          updateModalState({
+            type: 'error',
+            title: 'Camera Error',
+            message: error.message,
+          });
         }}
       />
       <View style={styles.controlOverlay}>
@@ -89,7 +108,7 @@ const CameraScreen = ({ navigation }: Props) => {
         </View>
         {uploading && (
           <View style={styles.uploadingContainer}>
-            <ActivityIndicator size="small" color= '#FFFFFF' />
+            <ActivityIndicator size="small" color="#FFFFFF" />
             <Text style={styles.uploadingText}>Uploading and processing video...</Text>
           </View>
         )}
@@ -140,6 +159,16 @@ const CameraScreen = ({ navigation }: Props) => {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Render the CustomModal */}
+      <CustomModal
+        isVisible={modalState.isVisible}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        onClose={handleCloseModal}
+        onConfirm={modalState.title === 'Permissions Blocked' ? handleOpenSettings : undefined}
+      />
     </LinearGradient>
   );
 };
