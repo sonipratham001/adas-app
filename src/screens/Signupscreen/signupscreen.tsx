@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { styles } from './signupscreen.styles';
-import { getAuth, createUserWithEmailAndPassword } from '@react-native-firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
 import CustomModal from '../../Modal/CustomModal'; // Import the CustomModal component
 
 // Define navigation params to match RootStackParamList
@@ -57,7 +57,12 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User created with email and password:', userCredential.user.uid);
-
+      
+      // Update the user's profile with the full name
+    await updateProfile(userCredential.user, {
+      displayName: fullName,
+    });
+    console.log('User profile updated with full name:', fullName);
       // Retrieve the Firebase ID token
       const token = await userCredential.user.getIdToken();
       console.log('Firebase ID Token:', token);

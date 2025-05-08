@@ -46,6 +46,8 @@ const SideMenu = ({ visible, onClose, navigation }: Props) => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log('User displayName:', user.displayName); // Debug log
+      console.log('User email:', user.email); // Debug log
         setUserDetails({
           name: user.displayName || 'Driver',
           email: user.email || 'No email provided',

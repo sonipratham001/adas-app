@@ -46,7 +46,6 @@ const App = () => {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<any>(null);
 
-  // Check auth state on app start
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -59,16 +58,18 @@ const App = () => {
   }, [initializing]);
 
   if (initializing) {
-    return null; // You can replace with a loading spinner if desired
+    return null; // Replace with a loading spinner if desired
   }
 
   return (
     <SideMenuProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
+          <Stack.Navigator
+            screenOptions={{ headerShown: false }}
+            initialRouteName={user ? 'Home' : 'Login'} // Dynamic initial route
+          >
             {!user ? (
-              // Non-authenticated stack
               <>
                 <Stack.Screen name="Signup" component={SignupScreen} />
                 <Stack.Screen name="OTP" component={OTPVerificationScreen} />
@@ -76,7 +77,6 @@ const App = () => {
                 <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
               </>
             ) : (
-              // Authenticated stack
               <>
                 <Stack.Screen name="Home">
                   {(props) => (
