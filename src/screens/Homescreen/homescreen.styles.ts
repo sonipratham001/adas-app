@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20, // Reduced margin to fit the new button
   },
   primaryButtonText: {
     fontSize: 18,
@@ -54,6 +54,32 @@ export const styles = StyleSheet.create({
   primaryButtonSubtitle: {
     fontSize: 14,
     color: '#1F2937',
+    textAlign: 'center',
+  },
+  secondaryButton: {
+    width: '90%',
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 20,
+    elevation: 3, // Slightly less elevation for a lighter shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  secondaryButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginTop: 5,
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  secondaryButtonSubtitle: {
+    fontSize: 14,
+    color: '#6B7280', // Lighter color to differentiate from primary button
     textAlign: 'center',
   },
   modalOverlay: {

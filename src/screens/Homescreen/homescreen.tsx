@@ -5,7 +5,7 @@ import { Icon } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { styles } from './homescreen.styles';
 import { useCameraRecording } from '../../useCameraRecording';
-import { useSideMenu } from '../../hooks/SideMenuContext'; // Import the context hook
+import { useSideMenu } from '../../hooks/SideMenuContext';
 
 type RootStackParamList = {
   Signup: undefined;
@@ -18,7 +18,7 @@ type RootStackParamList = {
   ForgotPassword: undefined;
 };
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Home'>; // Removed setSideMenuVisible from Props
+type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen = ({ navigation }: Props) => {
   const {
@@ -29,7 +29,7 @@ const HomeScreen = ({ navigation }: Props) => {
     handlePermissionRequest,
     loading,
   } = useCameraRecording();
-  const { setSideMenuVisible } = useSideMenu(); // Use the context hook
+  const { setSideMenuVisible } = useSideMenu();
 
   const handleStartRecordingPress = () => {
     if (!hasPermission) {
@@ -37,6 +37,10 @@ const HomeScreen = ({ navigation }: Props) => {
       return;
     }
     navigation.navigate('Camera');
+  };
+
+  const handleTripHistoryPress = () => {
+    navigation.navigate('Dashboard', { videoPaths });
   };
 
   const renderContent = () => (
@@ -86,6 +90,15 @@ const HomeScreen = ({ navigation }: Props) => {
             </Text>
           </>
         )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.secondaryButton}
+        onPress={handleTripHistoryPress}
+        activeOpacity={0.8}
+      >
+        <Icon name="history" type="font-awesome" size={24} color="#000" />
+        <Text style={styles.secondaryButtonText}>Trip History</Text>
+        <Text style={styles.secondaryButtonSubtitle}>View your past journeys and recordings</Text>
       </TouchableOpacity>
     </>
   );

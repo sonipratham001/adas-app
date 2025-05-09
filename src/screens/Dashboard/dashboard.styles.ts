@@ -6,12 +6,38 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     padding: 20,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 20,
+    marginTop: 30,
+    marginBottom: 15,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 20,
     textAlign: 'center',
+    flex: 1,
+  },
+  menuButton: {
+    position: 'absolute',
+    left: -23,
+    padding: 10,
+  },
+  sectionContainer: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 14, // Smaller font size for date
+    fontWeight: '500',
+    color: '#6B7280', // Lighter gray for subtlety
+    marginBottom: 10,
+  },
+  sectionContent: {
+    paddingHorizontal: 5,
   },
   videoItemContainer: {
     flexDirection: 'row',
@@ -42,12 +68,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   list: {
-    paddingBottom: 20,
-  },
-  videoPlayer: {
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingBottom: 80, // Increased to ensure the last item isn't obscured by the "Back to Home" button
   },
   errorContainer: {
     position: 'absolute',
@@ -69,6 +90,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 10,
+    marginBottom: 20,
   },
   controlButton: {
     flexDirection: 'row',
@@ -90,6 +112,7 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 20,
   },
   backText: {
     color: '#FFF',

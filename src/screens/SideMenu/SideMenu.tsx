@@ -104,16 +104,6 @@ const SideMenu = ({ visible, onClose, navigation }: Props) => {
           <Text style={styles.profileName}>{userDetails.name}</Text>
           <Text style={styles.profileEmail}>{userDetails.email}</Text>
         </View>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => {
-            navigation.navigate('Dashboard', { videoPaths: undefined });
-            onClose();
-          }}
-        >
-          <Icon name="history" type="font-awesome" size={20} color="#fff" style={styles.menuIcon} />
-          <Text style={styles.menuText}>Trip History</Text>
-        </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
           <Icon name="sign-out" type="font-awesome" size={20} color="#fff" style={styles.menuIcon} />
           <Text style={styles.menuText}>Log Out</Text>
