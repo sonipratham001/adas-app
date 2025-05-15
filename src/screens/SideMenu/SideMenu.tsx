@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { getAuth, onAuthStateChanged } from '@react-native-firebase/auth';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { styles } from './sidemenu.styles';
-import CustomModal from '../../Modal/CustomModal'; // Import the CustomModal component
+import CustomModal from '../../Modal/CustomModal';
 
 type RootStackParamList = {
   Signup: undefined;
@@ -18,9 +18,9 @@ type RootStackParamList = {
 };
 
 type Props = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
-  visible: boolean;
-  onClose: () => void;
+  navigation: NativeStackNavigationProp<RootStackParamList, 'Home' | 'SideMenu'>;
+  visible?: boolean; // Made optional
+  onClose?: () => void; // Made optional
 };
 
 type ModalState = {
@@ -30,10 +30,9 @@ type ModalState = {
   message: string;
 };
 
-const SideMenu = ({ visible, onClose, navigation }: Props) => {
-  const [userDetails, setUserDetails] = useState<{ name: string | null; email: string | null }>({
+const SideMenu = ({ visible = true, onClose, navigation }: Props) => {
+  const [userDetails, setUserDetails] = useState<{ name: string | null }>({
     name: null,
-    email: null,
   });
   const [modalState, setModalState] = useState<ModalState>({
     isVisible: false,
@@ -47,13 +46,11 @@ const SideMenu = ({ visible, onClose, navigation }: Props) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log('User displayName:', user.displayName); // Debug log
-      console.log('User email:', user.email); // Debug log
         setUserDetails({
           name: user.displayName || 'Driver',
-          email: user.email || 'No email provided',
         });
       } else {
-        setUserDetails({ name: 'Driver', email: 'No email provided' });
+        setUserDetails({ name: 'Driver' });
       }
     });
     return () => unsubscribe();
@@ -69,7 +66,8 @@ const SideMenu = ({ visible, onClose, navigation }: Props) => {
         title: 'Success',
         message: 'You have been logged out.',
       });
-      onClose();
+      if (onClose) onClose(); // Call onClose if provided
+      // navigation.navigate('Login'); // Navigate to Login after sign-out
     } catch (error: any) {
       console.error('Sign-out error:', error);
       setModalState({
@@ -85,40 +83,35 @@ const SideMenu = ({ visible, onClose, navigation }: Props) => {
     setModalState((prev) => ({ ...prev, isVisible: false }));
   };
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose(); // Use onClose if provided (overlay mode)
+    } else {
+      navigation.goBack(); // Navigate back if used as a screen
+    }
+  };
+
   if (!visible) return null;
 
   return (
     <View style={styles.container}>
-      {/* Side Menu Content */}
       <View style={styles.sideMenu}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Menu</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" type="font-awesome" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+          <Icon name="close" type="font-awesome" size={24} color="#333" />
+        </TouchableOpacity>
         <View style={styles.profileSection}>
-          <View style={styles.userIconContainer}>
-            <Icon name="user" type="font-awesome" size={40} color="#fff" style={styles.profileIcon} />
-          </View>
+          <Icon name="user" type="font-awesome" size={60} color="#333" />
           <Text style={styles.profileName}>{userDetails.name}</Text>
-          <Text style={styles.profileEmail}>{userDetails.email}</Text>
         </View>
         <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
-          <Icon name="sign-out" type="font-awesome" size={20} color="#fff" style={styles.menuIcon} />
-          <Text style={styles.menuText}>Log Out</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Icon name="sign-out" type="font-awesome" size={20} color="#333" />
+            <Text style={styles.menuText}>Log Out</Text>
+          </View>
+          <Icon name="chevron-right" type="font-awesome" size={20} color="#333" />
         </TouchableOpacity>
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>© 2025 Intute.ai. All rights reserved.</Text>
-        </View>
       </View>
 
-      {/* Backdrop that closes the menu when clicked */}
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.backdrop} />
-      </TouchableWithoutFeedback>
-
-      {/* Custom Modal */}
       <CustomModal
         isVisible={modalState.isVisible}
         type={modalState.type}

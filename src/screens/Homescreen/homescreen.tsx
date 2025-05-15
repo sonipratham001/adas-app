@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ActivityIndicator, Image } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Icon } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { styles } from './homescreen.styles';
 import { useCameraRecording } from '../../useCameraRecording';
-import { useSideMenu } from '../../hooks/SideMenuContext';
 
 type RootStackParamList = {
   Signup: undefined;
@@ -29,7 +28,6 @@ const HomeScreen = ({ navigation }: Props) => {
     handlePermissionRequest,
     loading,
   } = useCameraRecording();
-  const { setSideMenuVisible } = useSideMenu();
 
   const handleStartRecordingPress = () => {
     if (!hasPermission) {
@@ -43,6 +41,10 @@ const HomeScreen = ({ navigation }: Props) => {
     navigation.navigate('Dashboard', { videoPaths });
   };
 
+  const handleProfilePress = () => {
+    navigation.navigate('SideMenu');
+  };
+
   const renderContent = () => (
     <>
       {!hasPermission && (
@@ -54,7 +56,7 @@ const HomeScreen = ({ navigation }: Props) => {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Icon name="mic" type="font-awesome" size={40} color="#000" style={styles.modalIcon} />
+              <Icon name="mic" type="font-awesome" size={40} color="#FFF" style={styles.modalIcon} />
               <Text style={styles.modalTitle}>Allow Driver Safety System to record audio?</Text>
               <Text style={styles.modalSubtitle}>While using the app</Text>
               <TouchableOpacity style={styles.modalButton} onPress={() => handlePermissionRequest('allow')}>
@@ -70,49 +72,53 @@ const HomeScreen = ({ navigation }: Props) => {
           </View>
         </Modal>
       )}
-      <Text style={styles.welcomeText}>Welcome to Driver Safety System</Text>
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={handleStartRecordingPress}
-        activeOpacity={0.8}
-        disabled={loading || !hasPermission}
-      >
-        <Icon name="video-camera" type="font-awesome" size={24} color="#000" />
-        {loading ? (
-          <ActivityIndicator size="small" color="#000" style={{ marginVertical: 8 }} />
-        ) : (
-          <>
+
+      {/* Central Car Logo */}
+      <View style={styles.centerImageContainer}>
+        <Image
+          source={require('../../assets/car-logo.png')} // Replace with your car logo path
+          style={styles.centerImage}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={handleStartRecordingPress}
+          activeOpacity={0.8}
+          disabled={loading || !hasPermission}
+        >
+          <Icon name="video-camera" type="font-awesome" size={20} color="#FFF" />
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFF" style={{ marginLeft: 10 }} />
+          ) : (
             <Text style={styles.primaryButtonText}>
               {hasPermission ? 'Start Recording' : 'Permissions Required'}
             </Text>
-            <Text style={styles.primaryButtonSubtitle}>
-              {hasPermission ? 'Begin your journey with real-time monitoring' : 'Please grant camera and microphone permissions'}
-            </Text>
-          </>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={handleTripHistoryPress}
-        activeOpacity={0.8}
-      >
-        <Icon name="history" type="font-awesome" size={24} color="#000" />
-        <Text style={styles.secondaryButtonText}>Trip History</Text>
-        <Text style={styles.secondaryButtonSubtitle}>View your past journeys and recordings</Text>
-      </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={handleTripHistoryPress}
+          activeOpacity={0.8}
+        >
+          <Icon name="history" type="font-awesome" size={20} color="#1F2937" />
+          <Text style={styles.secondaryButtonText}>Trip History</Text>
+        </TouchableOpacity>
+      </View>
     </>
   );
 
   return (
     <LinearGradient
-      colors={['#F9FAFB', '#E5E7EB']}
+      colors={['#F9FAFB', '#E5E7EB']} // Exact colors from the reference app
       style={styles.container}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Driver Safety System</Text>
-        <TouchableOpacity onPress={() => setSideMenuVisible(true)} style={styles.signOutButton}>
-          <Icon name="bars" type="font-awesome" size={24} color="#1F2937" />
+        <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
+          <Icon name="user" type="font-awesome" size={24} color="#1F2937" />
         </TouchableOpacity>
+        <Text style={styles.title}>Driver Safety System</Text>
       </View>
       <View style={styles.centeredContent}>
         {renderContent()}

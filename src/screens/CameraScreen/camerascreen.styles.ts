@@ -7,112 +7,91 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Slightly less transparent for better visibility
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 20,
+    zIndex: 10, // Ensure overlay is above Camera component
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    paddingHorizontal: 15,
-    marginTop: 30,
+    marginTop: 40,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFF', // Match HomeScreen text color
+    fontWeight: '700',
+    color: '#FFF',
     textAlign: 'center',
+    left: 14,
     flex: 1,
   },
   backButton: {
-    padding: 10,
+    position: 'absolute',
+    left: 0,
+    padding: 15, // Increased padding for larger touch area
+    zIndex: 20, // Ensure button is above other elements
   },
-  controlPanel: {
-    flexDirection: 'column',
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
   actionButton: {
-    width: '90%',
-    backgroundColor: '#1F2937', // Match HomeScreen primary button
-    borderRadius: 12,
-    padding: 15,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 4,
+    borderColor: '#3B82F6',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
   },
-  actionButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFF', // Match HomeScreen button text
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  actionButtonSubtitle: {
-    fontSize: 12,
-    color: '#E5E7EB', // Match HomeScreen subtitle color
-    textAlign: 'center',
+  actionButtonInner: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   controlButton: {
-    width: '70%',
-    backgroundColor: '#1F2937', // Slightly darker for contrast on camera feed
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    alignItems: 'center',
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  controlButtonText: {
-    color: '#FFF',
-    fontSize: 14,
-    marginLeft: 8,
-    fontWeight: '500',
+    padding: 10,
   },
   uploadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1F2937', // Match HomeScreen modal background
-    borderRadius: 10,
-    padding: 8,
-    marginVertical: 10,
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    borderRadius: 12,
+    padding: 10,
+    marginVertical: 15,
     alignSelf: 'center',
   },
   uploadingText: {
-    color:  '#FFFFFF', // Match HomeScreen text color
+    color: '#FFF',
     fontSize: 14,
+    fontWeight: '600',
     marginLeft: 8,
-    fontWeight: '500',
   },
   responseContainer: {
-    backgroundColor: '#1F2937', // Match HomeScreen modal background
-    borderRadius: 10,
-    padding: 12,
-    marginVertical: 10,
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    borderRadius: 12,
+    padding: 15,
+    marginVertical: 15,
     width: '90%',
     alignSelf: 'center',
-    elevation: 4,
+    maxHeight: 200,
   },
   responseTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF', // Match HomeScreen text color
-    marginBottom: 5,
+    fontWeight: '700',
+    color: '#FFF',
+    marginBottom: 8,
   },
   responseText: {
     fontSize: 14,
-    color: '#FFFFFF', // Match HomeScreen text color
+    color: '#D1D5DB',
     marginBottom: 5,
   },
 });

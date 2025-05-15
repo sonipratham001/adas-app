@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { styles } from './forgotpasswordscreen.styles';
 import { getAuth, sendPasswordResetEmail } from '@react-native-firebase/auth';
@@ -97,61 +98,66 @@ const ForgotPasswordScreen = ({ navigation }: Props) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <LinearGradient
+      colors={['#F9FAFB', '#E5E7EB']}
       style={styles.container}
     >
-      <Text style={styles.title}>Reset Password</Text>
-
-      <View style={styles.singleInputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email Address"
-          placeholderTextColor="#6B7280"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-          editable={!loading}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, loading && { opacity: 0.6 }]}
-        onPress={handleResetPassword}
-        activeOpacity={0.8}
-        disabled={loading}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.innerContainer}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Send Reset Link</Text>
-        )}
-      </TouchableOpacity>
+        <Text style={styles.title}>Reset Password</Text>
 
-      <TouchableOpacity
-        onPress={handleBackToLogin}
-        style={styles.backToLoginContainer} // Apply the new centered style
-        disabled={loading}
-      >
-        <View style={{ flexDirection: 'row' }}>
-          <Text style={{ color: '#6B7280', fontSize: 16 }}>
-            Back to{' '}
-          </Text>
-          <Text style={{ fontWeight: 'bold', color: '#2563EB', fontSize: 16 }}>
-            Login
-          </Text>
+        <View style={styles.singleInputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email Address"
+            placeholderTextColor="#6B7280"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+            editable={!loading}
+          />
         </View>
-      </TouchableOpacity>
 
-      <CustomModal
-        isVisible={modalState.isVisible}
-        type={modalState.type}
-        title={modalState.title}
-        message={modalState.message}
-        onClose={handleCloseModal}
-      />
-    </KeyboardAvoidingView>
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && { opacity: 0.6 }]}
+          onPress={handleResetPassword}
+          activeOpacity={0.8}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Send Reset Link</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleBackToLogin}
+          style={styles.backToLoginContainer}
+          disabled={loading}
+        >
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={styles.backToLoginText}>
+              Back to{' '}
+            </Text>
+            <Text style={styles.backToLoginLinkText}>
+              Login
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <CustomModal
+          isVisible={modalState.isVisible}
+          type={modalState.type}
+          title={modalState.title}
+          message={modalState.message}
+          onClose={handleCloseModal}
+        />
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 

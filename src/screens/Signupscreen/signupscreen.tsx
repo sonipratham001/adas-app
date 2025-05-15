@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { styles } from './signupscreen.styles';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
-import CustomModal from '../../Modal/CustomModal'; // Import the CustomModal component
+import CustomModal from '../../Modal/CustomModal';
 
 // Define navigation params to match RootStackParamList
 interface SignupScreenProps {
@@ -59,10 +60,11 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
       console.log('User created with email and password:', userCredential.user.uid);
       
       // Update the user's profile with the full name
-    await updateProfile(userCredential.user, {
-      displayName: fullName,
-    });
-    console.log('User profile updated with full name:', fullName);
+      await updateProfile(userCredential.user, {
+        displayName: fullName,
+      });
+      console.log('User profile updated with full name:', fullName);
+      
       // Retrieve the Firebase ID token
       const token = await userCredential.user.getIdToken();
       console.log('Firebase ID Token:', token);
@@ -127,82 +129,87 @@ const SignupScreen = ({ navigation }: SignupScreenProps) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <LinearGradient
+      colors={['#F9FAFB', '#E5E7EB']}
       style={styles.container}
     >
-      <Text style={styles.title}>Create an Account</Text>
-
-      <View style={styles.singleInputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Full Name"
-          placeholderTextColor="#6B7280"
-          autoCapitalize="words"
-          value={fullName}
-          onChangeText={setFullName}
-          editable={!loading}
-        />
-      </View>
-
-      <View style={styles.singleInputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email Address"
-          placeholderTextColor="#6B7280"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-          editable={!loading}
-        />
-      </View>
-
-      <View style={styles.singleInputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#6B7280"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          editable={!loading}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, loading && { opacity: 0.6 }]}
-        onPress={handleSignup}
-        activeOpacity={0.8}
-        disabled={loading}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.innerContainer}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Sign Up</Text>
-        )}
-      </TouchableOpacity>
+        <Text style={styles.title}>Create an Account</Text>
 
-      <TouchableOpacity onPress={handleLoginRedirect} style={{ marginTop: 20 }} disabled={loading}>
-        <View style={{ flexDirection: 'row' }}>
-          <Text style={{ color: '#6B7280', fontSize: 16 }}>
-            Already have an account?{' '}
-          </Text>
-          <Text style={{ fontWeight: 'bold', color: '#2563EB', fontSize: 16 }}>
-            Login
-          </Text>
+        <View style={styles.singleInputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            placeholderTextColor="#6B7280"
+            autoCapitalize="words"
+            value={fullName}
+            onChangeText={setFullName}
+            editable={!loading}
+          />
         </View>
-      </TouchableOpacity>
 
-      {/* Custom Modal */}
-      <CustomModal
-        isVisible={modalState.isVisible}
-        type={modalState.type}
-        title={modalState.title}
-        message={modalState.message}
-        onClose={handleCloseModal}
-      />
-    </KeyboardAvoidingView>
+        <View style={styles.singleInputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email Address"
+            placeholderTextColor="#6B7280"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+            editable={!loading}
+          />
+        </View>
+
+        <View style={styles.singleInputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#6B7280"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            editable={!loading}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && { opacity: 0.6 }]}
+          onPress={handleSignup}
+          activeOpacity={0.8}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Sign Up</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleLoginRedirect} style={styles.loginRedirectContainer} disabled={loading}>
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={styles.loginText}>
+              Already have an account?{' '}
+            </Text>
+            <Text style={styles.loginLinkText}>
+              Login
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Custom Modal */}
+        <CustomModal
+          isVisible={modalState.isVisible}
+          type={modalState.type}
+          title={modalState.title}
+          message={modalState.message}
+          onClose={handleCloseModal}
+        />
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 

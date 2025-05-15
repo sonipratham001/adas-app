@@ -11,7 +11,7 @@ import DashboardScreen from './src/screens/Dashboard/dashboard';
 import CameraScreen from './src/screens/CameraScreen/CameraScreen';
 import SideMenu from './src/screens/SideMenu/SideMenu';
 import ForgotPasswordScreen from './src/screens/ForgotPassword/ForgotPasswordScreen';
-import { SideMenuProvider, useSideMenu } from './src/hooks/SideMenuContext';
+import VideoPlaybackScreen from './src/screens/VideoPlayBack/VideoPlayBackScreen';
 
 // Define the type for the navigation stack
 type RootStackParamList = {
@@ -19,28 +19,14 @@ type RootStackParamList = {
   OTP: undefined;
   Home: undefined;
   Login: undefined;
-  Dashboard: { videoPaths?: string[] };
+Dashboard: { videoPaths?: string[]; deletedVideoId?: string };
   Camera: undefined;
   SideMenu: undefined;
   ForgotPassword: undefined;
+  VideoPlayback: { videoUrl: string; videoId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
-
-const AuthenticatedLayout = ({ children, navigation }: any) => {
-  const { isSideMenuVisible, setSideMenuVisible } = useSideMenu();
-
-  return (
-    <>
-      {children}
-      <SideMenu
-        visible={isSideMenuVisible}
-        onClose={() => setSideMenuVisible(false)}
-        navigation={navigation}
-      />
-    </>
-  );
-};
 
 const App = () => {
   const [initializing, setInitializing] = useState(true);
@@ -61,50 +47,40 @@ const App = () => {
     return null; // Replace with a loading spinner if desired
   }
 
+  // Define screens based on authentication state
+  const renderScreens = () => {
+    if (!user) {
+      return (
+        <>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="OTP" component={OTPVerificationScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        </>
+      );
+    }
+    return (
+      <>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="Camera" component={CameraScreen} />
+        <Stack.Screen name="SideMenu" component={SideMenu} />
+        <Stack.Screen name="VideoPlayback" component={VideoPlaybackScreen} options={{ headerShown: false }} />
+      </>
+    );
+  };
+
   return (
-    <SideMenuProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{ headerShown: false }}
-            initialRouteName={user ? 'Home' : 'Login'} // Dynamic initial route
-          >
-            {!user ? (
-              <>
-                <Stack.Screen name="Signup" component={SignupScreen} />
-                <Stack.Screen name="OTP" component={OTPVerificationScreen} />
-                <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-              </>
-            ) : (
-              <>
-                <Stack.Screen name="Home">
-                  {(props) => (
-                    <AuthenticatedLayout navigation={props.navigation}>
-                      <HomeScreen {...props} />
-                    </AuthenticatedLayout>
-                  )}
-                </Stack.Screen>
-                <Stack.Screen name="Dashboard">
-                  {(props) => (
-                    <AuthenticatedLayout navigation={props.navigation}>
-                      <DashboardScreen {...props} />
-                    </AuthenticatedLayout>
-                  )}
-                </Stack.Screen>
-                <Stack.Screen name="Camera">
-                  {(props) => (
-                    <AuthenticatedLayout navigation={props.navigation}>
-                      <CameraScreen {...props} />
-                    </AuthenticatedLayout>
-                  )}
-                </Stack.Screen>
-              </>
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </GestureHandlerRootView>
-    </SideMenuProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{ headerShown: false }}
+          initialRouteName={user ? 'Home' : 'Login'} // Dynamic initial route
+        >
+          {renderScreens()}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 };
 

@@ -1,14 +1,13 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Animated } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { Camera } from 'react-native-vision-camera';
 import { Icon } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { styles } from './camerascreen.styles';
 import { useCameraRecording } from '../../useCameraRecording';
-import { useSideMenu } from '../../hooks/SideMenuContext';
-import CustomModal from '../../Modal/CustomModal'; // Import the CustomModal component
-import { openSettings } from 'react-native-permissions'; // Import openSettings for permissions blocked case
+import CustomModal from '../../Modal/CustomModal';
+import { openSettings } from 'react-native-permissions';
 
 type RootStackParamList = {
   Signup: undefined;
@@ -40,15 +39,36 @@ const CameraScreen = ({ navigation }: Props) => {
     setCameraReady,
     modalState,
     handleCloseModal,
-    updateModalState, // Destructure the new update function
+    updateModalState,
   } = useCameraRecording();
-  const { setSideMenuVisible } = useSideMenu();
 
-  // Handler for opening settings when permissions are blocked
   const handleOpenSettings = () => {
     openSettings();
     handleCloseModal();
   };
+
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    if (!recording) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1.1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      scaleAnim.setValue(1);
+    }
+  }, [recording]);
 
   if (!device) {
     return (
@@ -60,7 +80,7 @@ const CameraScreen = ({ navigation }: Props) => {
           <Text style={styles.title}>Camera Loading...</Text>
         </View>
         <ActivityIndicator size="large" color="#1F2937" />
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#1F2937', marginTop: 20, textAlign: 'center' }}>
+        <Text style={{ fontSize: 24, fontWeight: '700', color: '#1F2937', marginTop: 20, textAlign: 'center' }}>
           Loading Camera...
         </Text>
       </LinearGradient>
@@ -83,7 +103,6 @@ const CameraScreen = ({ navigation }: Props) => {
         onInitialized={() => setCameraReady(true)}
         onError={(error) => {
           console.error('Camera Error:', error);
-          // Use updateModalState to show the error
           updateModalState({
             type: 'error',
             title: 'Camera Error',
@@ -94,21 +113,22 @@ const CameraScreen = ({ navigation }: Props) => {
       <View style={styles.controlOverlay}>
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => {
+            onPress={async () => {
+              console.log('Back button pressed'); // Debug log
               if (recording) {
-                handleStartRecording();
+                await handleStartRecording(); // Await to ensure recording stops before navigating
               }
               navigation.goBack();
             }}
             style={styles.backButton}
           >
-            <Icon name="arrow-left" type="font-awesome" size={24} color="#FFF" />
+            <Icon name="arrow-left" type="font-awesome" size={28} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.title}>Driver Safety System</Text>
         </View>
         {uploading && (
           <View style={styles.uploadingContainer}>
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color="#FFF" />
             <Text style={styles.uploadingText}>Uploading and processing video...</Text>
           </View>
         )}
@@ -122,45 +142,38 @@ const CameraScreen = ({ navigation }: Props) => {
             ))}
           </View>
         )}
-        <View style={styles.controlPanel}>
+        <View style={styles.controls}>
           <TouchableOpacity
-            style={styles.controlButton}
             onPress={toggleCameraPosition}
-            activeOpacity={0.8}
-          >
-            <Icon name="camera" type="font-awesome" size={24} color="#FFF" />
-            <Text style={styles.controlButtonText}>Switch Camera</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={styles.controlButton}
-            onPress={toggleTorch}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <Icon name="flash" type="font-awesome" size={24} color="#FFF" />
-            <Text style={styles.controlButtonText}>{torch === 'on' ? 'Turn Off Torch' : 'Turn On Torch'}</Text>
+            <Icon name="refresh" type="font-awesome" size={28} color="#FFF" />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, uploading && { opacity: 0.5 }]}
+            style={styles.actionButton}
             onPress={handleStartRecording}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
             disabled={uploading || !cameraReady}
           >
-            <Icon
-              name={recording ? 'stop' : 'video-camera'}
-              type="font-awesome"
-              size={36}
-              color="#FFF"
-              style={{ marginBottom: 8 }}
-            />
-            <Text style={styles.actionButtonText}>{recording ? 'Stop Recording' : 'Start Recording'}</Text>
-            <Text style={styles.actionButtonSubtitle}>
-              {recording ? 'Recording and processing in real-time' : uploading ? 'Uploading video...' : 'Begin your journey'}
-            </Text>
+            <Animated.View style={[styles.actionButtonInner, { transform: [{ scale: scaleAnim }] }]}>
+              <Icon
+                name={recording ? 'stop' : 'video-camera'}
+                type="font-awesome"
+                size={40}
+                color="#FFF"
+              />
+            </Animated.View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={toggleTorch}
+            style={styles.controlButton}
+            activeOpacity={0.7}
+          >
+            <Icon name="flash" type="font-awesome" size={28} color="#FFF" />
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Render the CustomModal */}
       <CustomModal
         isVisible={modalState.isVisible}
         type={modalState.type}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { styles } from './loginscreen.styles';
@@ -14,7 +15,7 @@ type RootStackParamList = {
   Dashboard: { videoPaths?: string[] };
   Camera: undefined;
   SideMenu: undefined;
-  ForgotPassword: undefined; // Add ForgotPassword to the navigation stack
+  ForgotPassword: undefined;
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
@@ -71,7 +72,7 @@ const LoginScreen = ({ navigation }: Props) => {
         title: 'Login Successful',
         message: 'You have successfully logged in!',
       });
-      } catch (error: any) {
+    } catch (error: any) {
       console.error('Error during login:', error);
       console.log('Error code:', error.code);
       console.log('Error message:', error.message);
@@ -124,82 +125,87 @@ const LoginScreen = ({ navigation }: Props) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <LinearGradient
+      colors={['#F9FAFB', '#E5E7EB']}
       style={styles.container}
     >
-      <Text style={styles.title}>Login</Text>
-
-      <View style={styles.singleInputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email Address"
-          placeholderTextColor="#6B7280"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          editable={!loading}
-        />
-      </View>
-
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="Password"
-          placeholderTextColor="#6B7280"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
-          editable={!loading}
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)} disabled={loading}>
-          <Icon name={showPassword ? 'eye' : 'eye-off'} size={22} color="#6B7280" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Forgot Password Link */}
-      <TouchableOpacity
-        onPress={handleForgotPassword}
-        style={styles.forgotPasswordContainer}
-        disabled={loading}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.innerContainer}
       >
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>Login</Text>
 
-      <TouchableOpacity
-        style={[styles.button, loading && { opacity: 0.6 }]}
-        onPress={handleLogin}
-        activeOpacity={0.8}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={handleSignupRedirect} style={{ marginTop: 20 }} disabled={loading}>
-        <View style={{ flexDirection: 'row' }}>
-          <Text style={{ color: '#6B7280', fontSize: 16 }}>
-            Not registered yet?{' '}
-          </Text>
-          <Text style={{ fontWeight: 'bold', color: '#2563EB', fontSize: 16 }}>
-            Sign up
-          </Text>
+        <View style={styles.singleInputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email Address"
+            placeholderTextColor="#6B7280"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
         </View>
-      </TouchableOpacity>
 
-      {/* Custom Modal */}
-      <CustomModal
-        isVisible={modalState.isVisible}
-        type={modalState.type}
-        title={modalState.title}
-        message={modalState.message}
-        onClose={handleCloseModal}
-      />
-    </KeyboardAvoidingView>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Password"
+            placeholderTextColor="#6B7280"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            editable={!loading}
+          />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} disabled={loading}>
+            <Icon name={showPassword ? 'eye' : 'eye-off'} size={22} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Forgot Password Link */}
+        <TouchableOpacity
+          onPress={handleForgotPassword}
+          style={styles.forgotPasswordContainer}
+          disabled={loading}
+        >
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && { opacity: 0.6 }]}
+          onPress={handleLogin}
+          activeOpacity={0.8}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Login</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleSignupRedirect} style={styles.signupRedirectContainer} disabled={loading}>
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={styles.signupText}>
+              Not registered yet?{' '}
+            </Text>
+            <Text style={styles.signupLinkText}>
+              Sign up
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Custom Modal */}
+        <CustomModal
+          isVisible={modalState.isVisible}
+          type={modalState.type}
+          title={modalState.title}
+          message={modalState.message}
+          onClose={handleCloseModal}
+        />
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
