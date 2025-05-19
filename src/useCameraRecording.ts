@@ -4,12 +4,11 @@ import { Platform } from 'react-native';
 import { check, request, PERMISSIONS, RESULTS, openSettings } from 'react-native-permissions';
 import RNFS from 'react-native-fs';
 import { getAuth } from '@react-native-firebase/auth';
-import { storage } from './config/firebaseConfig';
+import { storage } from './config/firebaseConfig'; // Adjusted path based on folder structure
 import { ref, getDownloadURL } from '@react-native-firebase/storage';
-import axios from 'axios';
 import Tts from 'react-native-tts';
+import { processFrame } from './services/frameService'; // Import the local processFrame function
 
-const BACKEND_URL = 'http://148.66.155.196:5500/process_frame';
 const FRAME_SEND_INTERVAL = 2000;
 
 // Define the modal state type
@@ -166,39 +165,19 @@ export const useCameraRecording = () => {
       const photo = await camera.current.takePhoto({});
       photoPath = photo.path;
 
-      const auth = getAuth();
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('No authentication token');
+      // Call the local processFrame function
+      const newResponseData = await processFrame(photoPath);
 
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-
-      const formData = new FormData();
-      formData.append('frame', {
-        uri: `file://${photo.path}`,
-        type: 'image/jpeg',
-        name: 'frame.jpg',
-      } as any);
-
-      const response = await axios.post(BACKEND_URL, formData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      const newResponseData = response.data.data;
-      console.log(`[${new Date().toISOString()}] Server response:`, newResponseData);
+      console.log(`[${new Date().toISOString()}] Local frame processing response:`, newResponseData);
 
       if (newResponseData?.commands?.length > 0) {
         setResponseData(newResponseData);
-        if (newResponseData.audioUrl) {
-          console.log('Audio URL received but playback disabled:', newResponseData.audioUrl);
-        }
+        // No audioUrl handling needed, as TTS is handled by useEffect
       } else {
         setResponseData(null);
       }
     } catch (error: any) {
-      console.error('Error sending frame:', error);
+      console.error('Error processing frame locally:', error);
       if (error.message === 'No authentication token') {
         setModalState({
           isVisible: true,
@@ -206,26 +185,26 @@ export const useCameraRecording = () => {
           title: 'Error',
           message: 'Authentication failed. Please sign in again.',
         });
-      } else if (error.response) {
+      } else if (error.message === 'No frame file provided') {
         setModalState({
           isVisible: true,
           type: 'error',
           title: 'Error',
-          message: `Server error: ${error.response.data.error?.message || 'Unknown error'}`,
+          message: 'No frame file provided.',
         });
-      } else if (error.request) {
+      } else if (error.message === 'Failed to process frame on VPS') {
         setModalState({
           isVisible: true,
           type: 'error',
           title: 'Error',
-          message: 'Network error: Failed to connect to the server.',
+          message: 'Failed to process frame on VPS.',
         });
       } else {
         setModalState({
           isVisible: true,
           type: 'error',
           title: 'Error',
-          message: `Failed to send frame: ${error.message}`,
+          message: `Failed to process frame: ${error.message}`,
         });
       }
     } finally {
@@ -425,6 +404,6 @@ export const useCameraRecording = () => {
     loading,
     modalState,
     handleCloseModal,
-    updateModalState, // Expose the update function
+    updateModalState,
   };
 };
